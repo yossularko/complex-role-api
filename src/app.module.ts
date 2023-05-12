@@ -6,9 +6,10 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { MenusModule } from './menus/menus.module';
+import { AccessMenusModule } from './access-menus/access-menus.module';
 
 @Module({
-  imports: [PrismaModule, UsersModule, AuthModule, MenusModule],
+  imports: [PrismaModule, UsersModule, AuthModule, MenusModule, AccessMenusModule],
   controllers: [AppController],
   providers: [AppService],
 })
