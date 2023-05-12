@@ -30,24 +30,28 @@ export class AuthService {
   async signup(createUserData: RegisterDto): Promise<User> {
     const { name, email, password } = createUserData;
 
-    const foundUser = await this.prismaService.user.findUnique({
-      where: { email },
-    });
+    try {
+      const foundUser = await this.prismaService.user.findUnique({
+        where: { email },
+      });
 
-    if (foundUser) {
-      throw new BadRequestException('Email already exist');
+      if (foundUser) {
+        throw new BadRequestException('Email already exist');
+      }
+
+      const hashedPassword = await this.hashPassword(password);
+
+      return await this.prismaService.user.create({
+        data: {
+          email,
+          hashedPassword,
+          profile: { create: { name } },
+        },
+        include: { profile: true },
+      });
+    } catch (error) {
+      throw new HttpException(error, 500, { cause: new Error(error) });
     }
-
-    const hashedPassword = await this.hashPassword(password);
-
-    return await this.prismaService.user.create({
-      data: {
-        email,
-        hashedPassword,
-        profile: { create: { name } },
-      },
-      include: { profile: true },
-    });
   }
 
   async signIn(
@@ -57,36 +61,40 @@ export class AuthService {
   ): Promise<LoginRes> {
     const { email, password } = loginDto;
 
-    const foundUser = await this.prismaService.user.findUnique({
-      where: { email },
-      include: { profile: true },
-    });
+    try {
+      const foundUser = await this.prismaService.user.findUnique({
+        where: { email },
+        include: { profile: true },
+      });
 
-    if (!foundUser) {
-      throw new UnauthorizedException('Wrong credentials');
+      if (!foundUser) {
+        throw new UnauthorizedException('Wrong credentials');
+      }
+
+      const isMatch = await this.comparePasswords({
+        password,
+        hash: foundUser.hashedPassword,
+      });
+
+      if (!isMatch) {
+        throw new UnauthorizedException('Wrong email or password');
+      }
+
+      const access_token = await this.createAccessToken(foundUser);
+      const refresh_token = await this.createRefreshToken(foundUser);
+
+      delete foundUser.hashedPassword;
+
+      if (isMobile === 'true') {
+        return { token: { access_token, refresh_token }, user: foundUser };
+      }
+
+      res.cookie(jwtKey, access_token, this.configCookie(true));
+
+      return { token: { access_token: '', refresh_token }, user: foundUser };
+    } catch (error) {
+      throw new HttpException(error, 500, { cause: new Error(error) });
     }
-
-    const isMatch = await this.comparePasswords({
-      password,
-      hash: foundUser.hashedPassword,
-    });
-
-    if (!isMatch) {
-      throw new UnauthorizedException('Wrong email or password');
-    }
-
-    const access_token = await this.createAccessToken(foundUser);
-    const refresh_token = await this.createRefreshToken(foundUser);
-
-    delete foundUser.hashedPassword;
-
-    if (isMobile === 'true') {
-      return { token: { access_token, refresh_token }, user: foundUser };
-    }
-
-    res.cookie(jwtKey, access_token, this.configCookie(true));
-
-    return { token: { access_token: '', refresh_token }, user: foundUser };
   }
 
   async refreshAccessToken(
@@ -95,29 +103,33 @@ export class AuthService {
     response: Response,
   ): Promise<RefreshTokenRes> {
     const { refresh_token } = refreshAccessTokenDto;
-    const payload = await this.decodeToken(refresh_token);
-    const refreshToken = await this.prismaService.refreshToken.findUnique({
-      where: { id: payload.jid },
-      include: { User: true },
-    });
+    try {
+      const payload = await this.decodeToken(refresh_token);
+      const refreshToken = await this.prismaService.refreshToken.findUnique({
+        where: { id: payload.jid },
+        include: { User: true },
+      });
 
-    if (!refreshToken) {
-      throw new UnauthorizedException('Refresh token is not found');
+      if (!refreshToken) {
+        throw new UnauthorizedException('Refresh token is not found');
+      }
+
+      if (refreshToken.isRevoked) {
+        throw new UnauthorizedException('Refresh token has been revoked');
+      }
+
+      const access_token = await this.createAccessToken(refreshToken.User);
+
+      if (isMobile === 'true') {
+        return { access_token };
+      }
+
+      response.cookie('jwt_auth', access_token, this.configCookie(true));
+
+      return { access_token: '' };
+    } catch (error) {
+      throw new HttpException(error, 500, { cause: new Error(error) });
     }
-
-    if (refreshToken.isRevoked) {
-      throw new UnauthorizedException('Refresh token has been revoked');
-    }
-
-    const access_token = await this.createAccessToken(refreshToken.User);
-
-    if (isMobile === 'true') {
-      return { access_token };
-    }
-
-    response.cookie('jwt_auth', access_token, this.configCookie(true));
-
-    return { access_token: '' };
   }
 
   async revokeRefreshToken(
@@ -140,14 +152,18 @@ export class AuthService {
   }
 
   async clearRefreshToken(userId?: number) {
-    await this.prismaService.refreshToken.deleteMany({
-      where: Number.isNaN(userId) ? undefined : { userId },
-    });
-    return {
-      message: `All Refresh Token ${
-        userId ? `userId: ${userId} ` : ''
-      }has been deleted`,
-    };
+    try {
+      await this.prismaService.refreshToken.deleteMany({
+        where: Number.isNaN(userId) ? undefined : { userId },
+      });
+      return {
+        message: `All Refresh Token ${
+          userId ? `userId: ${userId} ` : ''
+        }has been deleted`,
+      };
+    } catch (error) {
+      throw new HttpException(error, 500, { cause: new Error(error) });
+    }
   }
 
   async hashPassword(password: string) {
@@ -183,31 +199,35 @@ export class AuthService {
   }
 
   async createRefreshToken(user: User): Promise<string> {
-    const expiredAt = new Date();
-    expiredAt.setTime(
-      expiredAt.getTime() + Number(refreshTokenConfig.expiresIn),
-    );
+    try {
+      const expiredAt = new Date();
+      expiredAt.setTime(
+        expiredAt.getTime() + Number(refreshTokenConfig.expiresIn),
+      );
 
-    const refreshToken = await this.prismaService.refreshToken.create({
-      data: {
-        isRevoked: false,
-        expiredAt,
-        User: {
-          connect: {
-            id: user.id,
+      const refreshToken = await this.prismaService.refreshToken.create({
+        data: {
+          isRevoked: false,
+          expiredAt,
+          User: {
+            connect: {
+              id: user.id,
+            },
           },
         },
-      },
-    });
+      });
 
-    const payload = { jid: refreshToken.id };
+      const payload = { jid: refreshToken.id };
 
-    const refresh_token = await this.jwtService.signAsync(
-      payload,
-      refreshTokenConfig,
-    );
+      const refresh_token = await this.jwtService.signAsync(
+        payload,
+        refreshTokenConfig,
+      );
 
-    return refresh_token;
+      return refresh_token;
+    } catch (error) {
+      throw new HttpException(error, 500, { cause: new Error(error) });
+    }
   }
 
   configCookie(isLocal?: boolean): CookieOptions {
