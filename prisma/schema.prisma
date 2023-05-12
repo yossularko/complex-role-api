@@ -1,0 +1,71 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              Int       @id       @default(autoincrement())
+  email           String    @unique
+  hashedPassword  String
+
+  profile         Profile?
+  accessMenus     AccessMenu[]
+  refreshTokens   RefreshToken[]
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt()
+}
+
+model RefreshToken {
+  id              Int       @id       @default(autoincrement())
+  isRevoked       Boolean?  @default(false)
+  expiredAt       DateTime
+
+  User            User?     @relation(fields: [userId], references: [id])
+  userId          Int? // id for user who is associated with this refresh token
+}
+
+model Profile {
+  id              Int       @id       @default(autoincrement())
+  name            String
+  bio             String?   @db.Text
+  avaImage        String?
+  bgImage         String?
+
+  User            User?     @relation(fields: [userEmail], references: [email])
+  userEmail       String    @unique
+}
+
+model Menu {
+  id              Int       @id       @default(autoincrement())
+  slug            String    @unique
+  name            String
+  alias           String
+  parent          String[]
+
+  accessMenus     AccessMenu[]
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt()
+}
+
+model AccessMenu {
+  id              Int       @id       @default(autoincrement())
+  actions         String[] // ["create", "read", "update", "delete"]
+
+  Menu            Menu?     @relation(fields: [menuSlug], references: [slug])
+  menuSlug        String?
+
+  User            User?     @relation(fields: [userId], references: [id])
+  userId          Int?
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt()
+}
