@@ -1,12 +1,16 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { Menu } from '@prisma/client';
+import { ConfigService } from 'src/config/config.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateMenuDto } from './dto/create-menu.dto';
 import { UpdateMenuDto } from './dto/update-menu.dto';
 
 @Injectable()
 export class MenusService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly configService: ConfigService,
+  ) {}
 
   async create(createMenuDto: CreateMenuDto): Promise<Menu> {
     try {
@@ -19,9 +23,11 @@ export class MenusService {
     }
   }
 
-  async findAll(): Promise<Menu[]> {
+  async findAll() {
     try {
-      return await this.prismaService.menu.findMany();
+      const menus = await this.prismaService.menu.findMany();
+      const serialized = this.configService.createMenuTree(menus);
+      return serialized;
     } catch (error) {
       throw new HttpException(error, 500, { cause: new Error(error) });
     }

@@ -7,9 +7,10 @@ import { AuthModule } from './auth/auth.module';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { MenusModule } from './menus/menus.module';
 import { AccessMenusModule } from './access-menus/access-menus.module';
+import { ConfigModule } from './config/config.module';
 
 @Module({
-  imports: [PrismaModule, UsersModule, AuthModule, MenusModule, AccessMenusModule],
+  imports: [PrismaModule, UsersModule, AuthModule, MenusModule, AccessMenusModule, ConfigModule],
   controllers: [AppController],
   providers: [AppService],
 })
