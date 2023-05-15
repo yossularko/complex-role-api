@@ -10,7 +10,7 @@ export class UsersService {
   async findAll() {
     try {
       return await this.prismaService.user.findMany({
-        include: { profile: true },
+        select: { id: true, profile: true },
       });
     } catch (error) {
       throw new HttpException(error, 500, { cause: new Error(error) });
@@ -21,7 +21,7 @@ export class UsersService {
     try {
       const item = await this.prismaService.user.findUnique({
         where: { id },
-        include: { profile: true },
+        include: { profile: true, accessMenus: true },
       });
 
       if (!item) {
@@ -64,8 +64,8 @@ export class UsersService {
     try {
       await this.prismaService.user.update({
         where: { id },
-        data: { profile: { delete: true } },
-        include: { profile: true },
+        data: { profile: { delete: true }, accessMenus: { set: [] } },
+        include: { profile: true, accessMenus: true },
       });
       await this.prismaService.user.delete({
         where: { id },
