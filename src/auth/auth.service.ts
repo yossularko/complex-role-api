@@ -64,7 +64,7 @@ export class AuthService {
     try {
       const foundUser = await this.prismaService.user.findUnique({
         where: { email },
-        include: { profile: true },
+        include: { profile: true, accessMenus: true },
       });
 
       if (!foundUser) {
