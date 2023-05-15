@@ -1,4 +1,5 @@
 export interface Menu {
+  accessMenuId?: number;
   id: number;
   slug: string;
   name: string;
@@ -10,6 +11,7 @@ export interface Menu {
 }
 
 export interface MenuRes {
+  accessMenuId?: number;
   id: number;
   slug: string;
   name: string;

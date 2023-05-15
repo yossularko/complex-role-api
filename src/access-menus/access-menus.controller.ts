@@ -30,8 +30,8 @@ export class AccessMenusController {
   }
 
   @Get()
-  findAll() {
-    return this.accessMenusService.findAll();
+  findAll(@GetUser() user: User) {
+    return this.accessMenusService.findAll(user);
   }
 
   @Get(':id')
