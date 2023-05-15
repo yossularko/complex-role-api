@@ -16,6 +16,20 @@ export class ConfigService {
     return this.recursiveMenu(menuRange)[0];
   }
 
+  createMenuSingle(treeData: MenuRes[]): Menu[] {
+    return treeData.reduce((acc, curr) => {
+      const { children, ...rest } = curr;
+      if (children) {
+        const next = this.createMenuSingle(children);
+        acc.push(rest, ...next);
+      } else {
+        acc.push(rest);
+      }
+
+      return acc;
+    }, []);
+  }
+
   getMenuRange(data: Menu[]): Menu[][] {
     const parentLengths = data.map((item) => item.parent.length);
     const maxParent = Math.max(...parentLengths) + 1;
