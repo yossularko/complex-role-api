@@ -8,12 +8,12 @@ import {
   Delete,
   ParseIntPipe,
   UseGuards,
+  Query,
 } from '@nestjs/common';
-import { User } from '@prisma/client';
-import { GetUser } from 'src/common/decorator/get-user.decorator';
 import { JwtGuard } from 'src/common/guard/jwt.guard';
 import { AccessMenusService } from './access-menus.service';
 import { CreateAccessMenuDto } from './dto/create-access-menu.dto';
+import { QueryAccessMenuDto } from './dto/query-access-menu.dto';
 import { UpdateAccessMenuDto } from './dto/update-access-menu.dto';
 
 @Controller('access-menus')
@@ -22,16 +22,14 @@ export class AccessMenusController {
   constructor(private readonly accessMenusService: AccessMenusService) {}
 
   @Post()
-  create(
-    @Body() createAccessMenuDto: CreateAccessMenuDto,
-    @GetUser() user: User,
-  ) {
-    return this.accessMenusService.create(createAccessMenuDto, user);
+  create(@Body() createAccessMenuDto: CreateAccessMenuDto) {
+    return this.accessMenusService.create(createAccessMenuDto);
   }
 
   @Get()
-  findAll(@GetUser() user: User) {
-    return this.accessMenusService.findAll(user);
+  findAll(@Query() query: QueryAccessMenuDto) {
+    const { userId } = query;
+    return this.accessMenusService.findAll(userId);
   }
 
   @Get(':id')

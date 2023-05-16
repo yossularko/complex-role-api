@@ -1,5 +1,10 @@
-import { ForbiddenException, HttpException, Injectable } from '@nestjs/common';
-import { AccessMenu, User } from '@prisma/client';
+import {
+  BadRequestException,
+  ForbiddenException,
+  HttpException,
+  Injectable,
+} from '@nestjs/common';
+import { AccessMenu } from '@prisma/client';
 import { ConfigService } from 'src/config/config.service';
 import { Menu, MenuRes } from 'src/config/interface/config.interface';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -13,11 +18,8 @@ export class AccessMenusService {
     private readonly configService: ConfigService,
   ) {}
 
-  async create(
-    createAccessMenuDto: CreateAccessMenuDto,
-    user: User,
-  ): Promise<AccessMenu> {
-    const { actions, menuSlug } = createAccessMenuDto;
+  async create(createAccessMenuDto: CreateAccessMenuDto): Promise<AccessMenu> {
+    const { userId, actions, menuSlug } = createAccessMenuDto;
     try {
       const slugs = await this.getSlugs();
       const isExist = slugs.some((item) => item.menuSlug === menuSlug);
@@ -30,7 +32,7 @@ export class AccessMenusService {
         data: {
           actions,
           Menu: { connect: { slug: menuSlug } },
-          User: { connect: { id: user.id } },
+          User: { connect: { id: userId } },
         },
       });
     } catch (error) {
@@ -38,10 +40,13 @@ export class AccessMenusService {
     }
   }
 
-  async findAll(user: User): Promise<MenuRes[]> {
+  async findAll(userId: number): Promise<MenuRes[]> {
+    if (Number.isNaN(userId)) {
+      throw new BadRequestException('userId is not a number!');
+    }
     try {
       const menus = await this.prismaService.accessMenu.findMany({
-        where: { userId: user.id },
+        where: { userId },
         include: { Menu: true },
       });
 
