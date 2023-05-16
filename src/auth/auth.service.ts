@@ -18,11 +18,14 @@ import { TokenExpiredError } from 'jsonwebtoken';
 import { LoginRes } from './interface/login-res.interface';
 import { RefreshAccessTokenDto } from './dto/refresh-access-token.dto';
 import { RefreshTokenRes } from './interface/refresh-token-res.interface';
+import { ConfigService } from 'src/config/config.service';
+import { Menu } from 'src/config/interface/config.interface';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prismaService: PrismaService,
+    private readonly configService: ConfigService,
     private jwtService: JwtService,
   ) {}
 
@@ -64,7 +67,7 @@ export class AuthService {
     try {
       const foundUser = await this.prismaService.user.findUnique({
         where: { email },
-        include: { profile: true, accessMenus: true },
+        include: { profile: true, accessMenus: { include: { Menu: true } } },
       });
 
       if (!foundUser) {
@@ -85,13 +88,32 @@ export class AuthService {
 
       delete foundUser.hashedPassword;
 
+      const { accessMenus, ...rest } = foundUser;
+
+      const initialAccessMenu: Menu[] = accessMenus.map((item) => ({
+        accessMenuId: item.id,
+        ...item.Menu,
+        actions: item.actions,
+      }));
+
+      const newAccessMenu =
+        this.configService.createMenuTree(initialAccessMenu);
+
       if (isMobile === 'true') {
-        return { token: { access_token, refresh_token }, user: foundUser };
+        return {
+          token: { access_token, refresh_token },
+          user: rest,
+          accessMenus: newAccessMenu,
+        };
       }
 
       res.cookie(jwtKey, access_token, this.configCookie(true));
 
-      return { token: { access_token: '', refresh_token }, user: foundUser };
+      return {
+        token: { access_token: '', refresh_token },
+        user: rest,
+        accessMenus: newAccessMenu,
+      };
     } catch (error) {
       throw new HttpException(error, 500, { cause: new Error(error) });
     }
