@@ -13,9 +13,13 @@ import { MenusService } from './menus.service';
 import { CreateMenuDto } from './dto/create-menu.dto';
 import { UpdateMenuDto } from './dto/update-menu.dto';
 import { JwtGuard } from 'src/common/guard/jwt.guard';
+import { Slugs } from 'src/common/decorator/slugs.decorator';
+import { AccessMenuGuard } from 'src/common/guard/access-menu.guard';
+import { Actions } from 'src/common/decorator/actions.decorator';
+import { MenuAction } from 'src/types/index.type';
 
 @Controller('menus')
-@UseGuards(JwtGuard)
+@UseGuards(JwtGuard, AccessMenuGuard)
 export class MenusController {
   constructor(private readonly menusService: MenusService) {}
 
@@ -24,6 +28,8 @@ export class MenusController {
     return this.menusService.create(createMenuDto);
   }
 
+  @Slugs('change-project-codes')
+  @Actions(MenuAction.read)
   @Get()
   findAll(@Query('type') type: string) {
     return this.menusService.findAll(type);
