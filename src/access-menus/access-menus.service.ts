@@ -23,7 +23,7 @@ export class AccessMenusService {
   async create(createAccessMenuDto: CreateAccessMenuDto): Promise<AccessMenu> {
     const { userId, actions, menuSlug } = createAccessMenuDto;
     try {
-      const slugs = await this.getSlugs();
+      const slugs = await this.getSlugs(userId);
       const isExist = slugs.some((item) => item.menuSlug === menuSlug);
 
       if (isExist) {
@@ -112,9 +112,10 @@ export class AccessMenusService {
     }
   }
 
-  async getSlugs() {
+  async getSlugs(userId: number) {
     try {
       return await this.prismaService.accessMenu.findMany({
+        where: { userId },
         select: { menuSlug: true },
       });
     } catch (error) {
