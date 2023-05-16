@@ -10,6 +10,7 @@ import {
   UseGuards,
   Query,
 } from '@nestjs/common';
+import { AdministratorGuard } from 'src/common/guard/administrator.guard';
 import { JwtGuard } from 'src/common/guard/jwt.guard';
 import { AccessMenusService } from './access-menus.service';
 import { CreateAccessMenuDto } from './dto/create-access-menu.dto';
@@ -17,7 +18,7 @@ import { QueryAccessMenuDto } from './dto/query-access-menu.dto';
 import { UpdateAccessMenuDto } from './dto/update-access-menu.dto';
 
 @Controller('access-menus')
-@UseGuards(JwtGuard)
+@UseGuards(JwtGuard, AdministratorGuard)
 export class AccessMenusController {
   constructor(private readonly accessMenusService: AccessMenusService) {}
 
