@@ -95,7 +95,7 @@ export class AccessMenusService {
         where: { id },
         data: {
           actions,
-          Menu: { connect: { slug: menuSlug } },
+          Menu: menuSlug ? { connect: { slug: menuSlug } } : undefined,
         },
       });
     } catch (error) {
