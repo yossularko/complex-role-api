@@ -17,7 +17,9 @@ import { Slugs } from 'src/common/decorator/slugs.decorator';
 import { AccessMenuGuard } from 'src/common/guard/access-menu.guard';
 import { Actions } from 'src/common/decorator/actions.decorator';
 import { MenuAction } from 'src/types/index.type';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Menu')
 @Controller('menus')
 @UseGuards(JwtGuard, AccessMenuGuard)
 export class MenusController {
