@@ -13,6 +13,7 @@ import {
 import { AdministratorGuard } from 'src/common/guard/administrator.guard';
 import { JwtGuard } from 'src/common/guard/jwt.guard';
 import { AccessMenusService } from './access-menus.service';
+import { CreateAccessMenuListDto } from './dto/create-access-menu-list.dto';
 import { CreateAccessMenuDto } from './dto/create-access-menu.dto';
 import { QueryAccessMenuDto } from './dto/query-access-menu.dto';
 import { UpdateAccessMenuDto } from './dto/update-access-menu.dto';
@@ -25,6 +26,11 @@ export class AccessMenusController {
   @Post()
   create(@Body() createAccessMenuDto: CreateAccessMenuDto) {
     return this.accessMenusService.create(createAccessMenuDto);
+  }
+
+  @Post('replace')
+  createMenus(@Body() createAccessMenuListDto: CreateAccessMenuListDto) {
+    return this.accessMenusService.createMenus(createAccessMenuListDto);
   }
 
   @Get()

@@ -9,6 +9,7 @@ import { ConfigService } from 'src/config/config.service';
 import { Menu, MenuRes } from 'src/config/interface/config.interface';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { MenuType } from 'src/types/index.type';
+import { CreateAccessMenuListDto } from './dto/create-access-menu-list.dto';
 import { CreateAccessMenuDto } from './dto/create-access-menu.dto';
 import { QueryAccessMenuDto } from './dto/query-access-menu.dto';
 import { UpdateAccessMenuDto } from './dto/update-access-menu.dto';
@@ -37,6 +38,32 @@ export class AccessMenusService {
           User: { connect: { id: userId } },
         },
       });
+    } catch (error) {
+      throw new HttpException(error, 500, { cause: new Error(error) });
+    }
+  }
+
+  async createMenus(createAccessMenuListDto: CreateAccessMenuListDto) {
+    const { userId, menus } = createAccessMenuListDto;
+    try {
+      await this.prismaService.accessMenu.deleteMany({ where: { userId } });
+
+      const menuList = await Promise.all(
+        menus.map(async (menu) => {
+          const dataMenu: CreateAccessMenuDto = {
+            actions: menu.actions,
+            menuSlug: menu.menuSlug,
+            userId,
+          };
+
+          return await this.create(dataMenu);
+        }),
+      );
+
+      return {
+        message: `Success update access menu userId: ${userId}`,
+        data: menuList,
+      };
     } catch (error) {
       throw new HttpException(error, 500, { cause: new Error(error) });
     }
