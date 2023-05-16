@@ -23,28 +23,36 @@ import { MenuAction } from 'src/types/index.type';
 export class MenusController {
   constructor(private readonly menusService: MenusService) {}
 
+  @Slugs('menus')
+  @Actions(MenuAction.create)
   @Post()
   create(@Body() createMenuDto: CreateMenuDto) {
     return this.menusService.create(createMenuDto);
   }
 
-  @Slugs('change-project-codes')
+  @Slugs('menus')
   @Actions(MenuAction.read)
   @Get()
   findAll(@Query('type') type: string) {
     return this.menusService.findAll(type);
   }
 
+  @Slugs('menus')
+  @Actions(MenuAction.read)
   @Get(':slug')
   findOne(@Param('slug') id: string) {
     return this.menusService.findOne(id);
   }
 
+  @Slugs('menus')
+  @Actions(MenuAction.update)
   @Patch(':slug')
   update(@Param('slug') id: string, @Body() updateMenuDto: UpdateMenuDto) {
     return this.menusService.update(id, updateMenuDto);
   }
 
+  @Slugs('menus')
+  @Actions(MenuAction.delete)
   @Delete(':slug')
   remove(@Param('slug') id: string) {
     return this.menusService.remove(id);
