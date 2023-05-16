@@ -8,7 +8,9 @@ import { AccessMenu } from '@prisma/client';
 import { ConfigService } from 'src/config/config.service';
 import { Menu, MenuRes } from 'src/config/interface/config.interface';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { MenuType } from 'src/types/index.type';
 import { CreateAccessMenuDto } from './dto/create-access-menu.dto';
+import { QueryAccessMenuDto } from './dto/query-access-menu.dto';
 import { UpdateAccessMenuDto } from './dto/update-access-menu.dto';
 
 @Injectable()
@@ -40,7 +42,10 @@ export class AccessMenusService {
     }
   }
 
-  async findAll(userId: number): Promise<MenuRes[]> {
+  async findAll(query: QueryAccessMenuDto): Promise<MenuRes[]> {
+    const { userId, type } = query;
+    const newType = type || MenuType.tree;
+
     if (Number.isNaN(userId)) {
       throw new BadRequestException('userId is not a number!');
     }
@@ -56,7 +61,17 @@ export class AccessMenusService {
         actions: item.actions,
       }));
 
-      return this.configService.createMenuTree(newMenu);
+      if (newType === MenuType.original) {
+        return newMenu;
+      }
+
+      const menuTree = this.configService.createMenuTree(newMenu);
+
+      if (newType === MenuType.tree) {
+        return menuTree;
+      }
+
+      return this.configService.createMenuSingle(menuTree);
     } catch (error) {
       throw new HttpException(error, 500, { cause: new Error(error) });
     }

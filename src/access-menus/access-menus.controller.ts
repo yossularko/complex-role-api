@@ -28,8 +28,7 @@ export class AccessMenusController {
 
   @Get()
   findAll(@Query() query: QueryAccessMenuDto) {
-    const { userId } = query;
-    return this.accessMenusService.findAll(userId);
+    return this.accessMenusService.findAll(query);
   }
 
   @Get(':id')

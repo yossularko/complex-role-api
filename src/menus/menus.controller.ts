@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { MenusService } from './menus.service';
 import { CreateMenuDto } from './dto/create-menu.dto';
@@ -24,8 +25,8 @@ export class MenusController {
   }
 
   @Get()
-  findAll() {
-    return this.menusService.findAll();
+  findAll(@Query('type') type: string) {
+    return this.menusService.findAll(type);
   }
 
   @Get(':slug')
