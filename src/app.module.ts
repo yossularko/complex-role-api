@@ -10,7 +10,14 @@ import { AccessMenusModule } from './access-menus/access-menus.module';
 import { ConfigModule } from './config/config.module';
 
 @Module({
-  imports: [PrismaModule, UsersModule, AuthModule, MenusModule, AccessMenusModule, ConfigModule],
+  imports: [
+    PrismaModule,
+    UsersModule,
+    AuthModule,
+    MenusModule,
+    AccessMenusModule,
+    ConfigModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
