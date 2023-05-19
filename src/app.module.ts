@@ -23,6 +23,8 @@ import { ConfigModule } from './config/config.module';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(LoggerMiddleware).forRoutes('users');
+    consumer
+      .apply(LoggerMiddleware)
+      .forRoutes('users', 'access-menus', 'menus');
   }
 }
