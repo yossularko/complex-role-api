@@ -13,7 +13,7 @@ import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login.dto';
 import { CookieOptions, Response } from 'express';
 import { refreshTokenConfig } from 'src/config/jwt.config';
-import { jwtKey } from 'src/utils/constant';
+import { jwtKey, jwtRefresh } from 'src/utils/constant';
 import { TokenExpiredError } from 'jsonwebtoken';
 import { LoginRes } from './interface/login-res.interface';
 import { RefreshAccessTokenDto } from './dto/refresh-access-token.dto';
@@ -107,7 +107,8 @@ export class AuthService {
         };
       }
 
-      res.cookie(jwtKey, access_token, this.configCookie(true));
+      res.cookie(jwtKey, access_token, this.configCookie('auth', true));
+      res.cookie(jwtRefresh, refresh_token, this.configCookie('refresh', true));
 
       return {
         token: { access_token: '', refresh_token },
@@ -146,7 +147,7 @@ export class AuthService {
         return { access_token };
       }
 
-      response.cookie('jwt_auth', access_token, this.configCookie(true));
+      response.cookie(jwtKey, access_token, this.configCookie('auth', true));
 
       return { access_token: '' };
     } catch (error) {
@@ -167,6 +168,7 @@ export class AuthService {
       });
 
       response.clearCookie(jwtKey);
+      response.clearCookie(jwtRefresh);
       return { message: 'Token has been revoked' };
     } catch (error) {
       throw new HttpException(error, 500, { cause: new Error(error) });
@@ -252,17 +254,19 @@ export class AuthService {
     }
   }
 
-  configCookie(isLocal?: boolean): CookieOptions {
+  configCookie(type: 'auth' | 'refresh', isLocal?: boolean): CookieOptions {
+    const duration = type === 'auth' ? 3600 * 1000 : 3600 * 1000 * 24;
+
     const localConfig: CookieOptions = {
       httpOnly: true,
       sameSite: 'lax',
       secure: false,
-      maxAge: 3600 * 1000,
+      maxAge: duration,
       path: '/',
     };
 
     const onlineConfig: CookieOptions = {
-      expires: new Date(new Date().getTime() + 3600 * 1000),
+      expires: new Date(new Date().getTime() + duration),
       httpOnly: true,
       sameSite: 'strict',
       secure: true,
