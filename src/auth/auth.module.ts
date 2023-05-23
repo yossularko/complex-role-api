@@ -6,9 +6,15 @@ import { JwtModule } from '@nestjs/jwt';
 import { jwtConfig } from 'src/config/jwt.config';
 import { JwtStrategy } from 'src/common/jwt.strategy';
 import { ConfigModule } from 'src/config/config.module';
+import { MenusModule } from 'src/menus/menus.module';
 
 @Module({
-  imports: [JwtModule.register(jwtConfig), PrismaModule, ConfigModule],
+  imports: [
+    JwtModule.register(jwtConfig),
+    PrismaModule,
+    ConfigModule,
+    MenusModule,
+  ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],
 })

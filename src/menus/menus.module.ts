@@ -9,5 +9,6 @@ import { ConfigModule } from 'src/config/config.module';
   imports: [PrismaModule, ConfigModule],
   controllers: [MenusController],
   providers: [MenusService, JwtStrategy],
+  exports: [MenusService],
 })
 export class MenusModule {}

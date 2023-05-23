@@ -24,7 +24,7 @@ export class MenusService {
     }
   }
 
-  async findAll(type: string) {
+  async findAll(type: keyof Record<MenuType, string>) {
     const newType = type || MenuType.tree;
 
     try {

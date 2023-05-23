@@ -20,12 +20,15 @@ import { RefreshAccessTokenDto } from './dto/refresh-access-token.dto';
 import { RefreshTokenRes } from './interface/refresh-token-res.interface';
 import { ConfigService } from 'src/config/config.service';
 import { Menu } from 'src/config/interface/config.interface';
+import { MenusService } from 'src/menus/menus.service';
+import { MenuType } from 'src/types/index.type';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly configService: ConfigService,
+    private readonly menusService: MenusService,
     private jwtService: JwtService,
   ) {}
 
@@ -90,14 +93,30 @@ export class AuthService {
 
       const { accessMenus, ...rest } = foundUser;
 
+      const masteMenu = await this.menusService.findAll(MenuType.list);
+
       const initialAccessMenu: Menu[] = accessMenus.map((item) => ({
         accessMenuId: item.id,
         ...item.Menu,
         actions: item.actions,
       }));
 
-      const newAccessMenu =
-        this.configService.createMenuTree(initialAccessMenu);
+      const compareMenu: Menu[] = masteMenu.map((val) => {
+        const idx = initialAccessMenu.findIndex(
+          (initMenu) => initMenu.slug === val.slug,
+        );
+        if (idx !== -1) {
+          return initialAccessMenu[idx];
+        }
+
+        return val;
+      });
+
+      const validAccessMenu: Menu[] = compareMenu.filter(
+        (validMenu) => typeof validMenu.accessMenuId === 'number',
+      );
+
+      const newAccessMenu = this.configService.createMenuTree(validAccessMenu);
 
       if (isMobile === 'true') {
         return {

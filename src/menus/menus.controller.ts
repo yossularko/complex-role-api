@@ -16,7 +16,7 @@ import { JwtGuard } from 'src/common/guard/jwt.guard';
 import { Slugs } from 'src/common/decorator/slugs.decorator';
 import { AccessMenuGuard } from 'src/common/guard/access-menu.guard';
 import { Actions } from 'src/common/decorator/actions.decorator';
-import { MenuAction } from 'src/types/index.type';
+import { MenuAction, MenuType } from 'src/types/index.type';
 import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Menu')
@@ -35,7 +35,7 @@ export class MenusController {
   @Slugs('menus')
   @Actions(MenuAction.read)
   @Get()
-  findAll(@Query('type') type: string) {
+  findAll(@Query('type') type: keyof Record<MenuType, string>) {
     return this.menusService.findAll(type);
   }
 
