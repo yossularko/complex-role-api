@@ -36,6 +36,7 @@ model Profile {
   id              Int       @id       @default(autoincrement())
   name            String
   bio             String?   @db.Text
+  alamat          String?
   avaImage        String?
   bgImage         String?
 

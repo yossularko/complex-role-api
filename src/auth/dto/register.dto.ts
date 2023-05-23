@@ -15,6 +15,10 @@ export class RegisterDto extends LoginDto {
 
   @ApiProperty({ required: false })
   @IsOptional()
+  alamat: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
   avaImage: string;
 
   @ApiProperty({ required: false })

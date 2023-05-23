@@ -38,7 +38,7 @@ export class UsersService {
   }
 
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
-    const { email, name, bio, avaImage, bgImage } = updateUserDto;
+    const { email, name, bio, alamat, avaImage, bgImage } = updateUserDto;
 
     try {
       const item = await this.prismaService.user.update({
@@ -46,7 +46,7 @@ export class UsersService {
         data: {
           email,
           profile: {
-            update: { name, bio, avaImage, bgImage },
+            update: { name, bio, avaImage, bgImage, alamat },
           },
         },
         include: { profile: true },
