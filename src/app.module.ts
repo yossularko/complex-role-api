@@ -9,6 +9,7 @@ import { MenusModule } from './menus/menus.module';
 import { AccessMenusModule } from './access-menus/access-menus.module';
 import { ConfigModule } from './config/config.module';
 import { TemplateMenusModule } from './template-menus/template-menus.module';
+import { ProjectsModule } from './app/project/maintenance/projects/projects.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { TemplateMenusModule } from './template-menus/template-menus.module';
     AccessMenusModule,
     ConfigModule,
     TemplateMenusModule,
+    ProjectsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
