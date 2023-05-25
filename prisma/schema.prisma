@@ -52,6 +52,7 @@ model Menu {
   parent          String[]
 
   accessMenus     AccessMenu[]
+  tempAccsMenus   TemplateAccsMenu[]
 
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt()
@@ -66,6 +67,30 @@ model AccessMenu {
 
   User            User?     @relation(fields: [userId], references: [id])
   userId          Int?
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt()
+}
+
+model TemplateMenu {
+  id              Int       @id       @default(autoincrement())
+  name            String
+
+  tempAccsMenus   TemplateAccsMenu[]
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt()
+}
+
+model TemplateAccsMenu {
+  id              Int       @id       @default(autoincrement())
+  actions         String[] // ["create", "read", "update", "delete"]
+
+  Menu            Menu?     @relation(fields: [menuSlug], references: [slug])
+  menuSlug        String?
+
+  TemplateMenu    TemplateMenu?     @relation(fields: [tempId], references: [id])
+  tempId          Int?
 
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt()

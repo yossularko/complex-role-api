@@ -8,6 +8,7 @@ import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { MenusModule } from './menus/menus.module';
 import { AccessMenusModule } from './access-menus/access-menus.module';
 import { ConfigModule } from './config/config.module';
+import { TemplateMenusModule } from './template-menus/template-menus.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { ConfigModule } from './config/config.module';
     MenusModule,
     AccessMenusModule,
     ConfigModule,
+    TemplateMenusModule,
   ],
   controllers: [AppController],
   providers: [AppService],
@@ -25,6 +27,6 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(LoggerMiddleware)
-      .forRoutes('users', 'access-menus', 'menus');
+      .forRoutes('users', 'access-menus', 'menus', 'template-menus');
   }
 }
