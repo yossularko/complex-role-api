@@ -3,13 +3,17 @@ import {
   HttpException,
   InternalServerErrorException,
 } from '@nestjs/common';
+import { ConfigService } from 'src/config/config.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateTemplateMenuDto } from './dto/create-template-menu.dto';
 import { UpdateTemplateMenuDto } from './dto/update-template-menu.dto';
 
 @Injectable()
 export class TemplateMenusService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly configService: ConfigService,
+  ) {}
 
   async create(createTemplateMenuDto: CreateTemplateMenuDto) {
     const { name, menus } = createTemplateMenuDto;
@@ -58,10 +62,22 @@ export class TemplateMenusService {
 
   async findOne(id: number) {
     try {
-      return await this.prismaService.templateMenu.findUnique({
+      const finded = await this.prismaService.templateMenu.findUnique({
         where: { id: id },
-        include: { tempAccsMenus: true },
+        include: { tempAccsMenus: { include: { Menu: true } } },
       });
+
+      const newVal = finded.tempAccsMenus.map((item) => {
+        return {
+          tempAccsId: item.id,
+          ...item.Menu,
+          actions: item.actions,
+        };
+      });
+
+      const menuTree = this.configService.createMenuTree(newVal);
+
+      return { id, name: finded.name, menus: menuTree };
     } catch (error) {
       throw new HttpException(error, 500, { cause: new Error(error) });
     }
@@ -70,7 +86,9 @@ export class TemplateMenusService {
   async update(id: number, updateTemplateMenuDto: UpdateTemplateMenuDto) {
     const { name, menus } = updateTemplateMenuDto;
     try {
-      await this.prismaService.templateAccsMenu.deleteMany({ where: { id } });
+      await this.prismaService.templateAccsMenu.deleteMany({
+        where: { tempId: id },
+      });
 
       if (name) {
         await this.prismaService.templateMenu.update({
